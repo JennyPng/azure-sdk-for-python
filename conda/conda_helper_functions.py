@@ -5,10 +5,9 @@ Helper functions for updating conda files.
 import os
 import glob
 import re
-import base64
 from functools import lru_cache
 from typing import Optional
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
 import csv
 from ci_tools.logging import logger
 import urllib.request
@@ -261,30 +260,18 @@ def _get_package_data_from_simple_api(
     Used as a fallback when the PyPI JSON API is unavailable, e.g. when
     PIP_INDEX_URL points to an Azure DevOps Artifacts feed (set by PipAuthenticate@1).
 
-    The AzDO feed proxies PyPI as an upstream source — authenticated requests
-    resolve the full upstream index, so the latest version is available even if
-    it hasn't been previously cached in the feed.
+    This queries the public pypi.org Simple index directly (not PIP_INDEX_URL).
+    An Azure Artifacts feed only lists upstream versions after they have been
+    saved into the feed by an install, and even then can lag the public registry
+    by hours — so it cannot reliably surface a newly released version. Reading
+    pypi.org directly avoids that staleness and yields canonical
+    files.pythonhosted.org download URLs suitable for persisting in
+    conda-sdk-client.yml. pypi.org/simple is public, so no auth is required.
     """
-    index_url = os.environ.get("PIP_INDEX_URL", "https://pypi.org/simple/")
-    simple_url = f"{index_url.rstrip('/')}/{package_name}/"
+    simple_url = f"https://pypi.org/simple/{package_name}/"
 
     try:
-        # PipAuthenticate@1 embeds credentials in PIP_INDEX_URL as
-        # https://build:<PAT>@pkgs.dev.azure.com/...
-        # Extract them into an Authorization header and strip from the URL.
-        parsed = urlparse(simple_url)
-        headers = {}
-        if parsed.password:
-            creds = base64.b64encode(
-                f"{parsed.username or ''}:{parsed.password}".encode()
-            ).decode()
-            headers["Authorization"] = f"Basic {creds}"
-            clean_netloc = parsed.hostname
-            if parsed.port and clean_netloc:
-                clean_netloc += f":{parsed.port}"
-            simple_url = parsed._replace(netloc=clean_netloc).geturl()
-
-        headers["Accept"] = "text/html"
+        headers = {"Accept": "text/html"}
         req = urllib.request.Request(simple_url, headers=headers)
         with urllib.request.urlopen(req, timeout=30) as response:
             html = response.read().decode("utf-8")
