@@ -14,6 +14,7 @@ import fnmatch
 import os
 import shutil
 import re
+import sys
 import json
 import shlex
 import subprocess
@@ -267,7 +268,7 @@ def create_combined_sdist(
             environment_config,
         )
 
-    if conda_build.checkout[0].download_uri:
+    if conda_build.checkout[0].is_pypi_source:
         # if we have a single dependency that is downloadable, it will be placed in final sdist location
         # by the get_package_source function. In that case, we just need to find it and return it
         if singular_dependency:
@@ -365,7 +366,48 @@ def get_git_source(
     shutil.move(code_source, code_destination)
 
 
-def download_pypi_source(target_folder: str, target_uri: str) -> str:
+def _pip_download_sdist(target_folder: str, package: str, version: str) -> str:
+    """Download a package sdist via ``pip download`` into target_folder.
+
+    pip honors ``PIP_INDEX_URL`` (set by PipAuthenticate@1), so on a network-
+    restricted build agent it authenticates to the Azure DevOps feed and pulls
+    the package through from the PyPI upstream — no direct pypi.org access needed.
+    Returns the path to the downloaded ``.tar.gz``.
+    """
+    subprocess.run(
+        [
+            sys.executable, "-m", "pip", "download",
+            f"{package}=={version}",
+            "--no-deps",
+            "--no-binary", ":all:",
+            "--dest", target_folder,
+        ],
+        check=True,
+        timeout=300,
+    )
+
+    sdists = [
+        os.path.join(target_folder, f)
+        for f in os.listdir(target_folder)
+        if f.endswith(".tar.gz") and tolerant_match(package, f)
+    ]
+    if not sdists:
+        raise RuntimeError(f"pip download produced no sdist for {package}=={version} in {target_folder}.")
+
+    return sdists[0]
+
+
+def download_pypi_source(target_folder: str, checkout_config: CheckoutConfiguration) -> str:
+    """Fetch a PyPI sdist into target_folder, returning its path.
+
+    Prefers ``pip download`` by package==version (works on network-restricted
+    agents via the authenticated feed). Falls back to a direct ``download_uri``
+    fetch only when no version is available (legacy configs).
+    """
+    if checkout_config.version:
+        return _pip_download_sdist(target_folder, checkout_config.package, checkout_config.version)
+
+    target_uri = checkout_config.download_uri
     basename = os.path.basename(target_uri)
     file_name = os.path.join(target_folder, basename)
 
@@ -388,14 +430,14 @@ def get_package_source(
     """
     Retrieves the source code for a specific checkout_config.
     """
-    if checkout_config.download_uri or checkout_config.version:
+    if checkout_config.is_pypi_source:
         # if we have a single package, we can simply use the source distribution _as is_ rather than
         # repackaging it. so we download and move it directly to assembled
         if len(conda_build.checkout) == 1:
-            return download_pypi_source(output_folder, checkout_config.download_uri)
+            return download_pypi_source(output_folder, checkout_config)
         # in case of multiple external packages, we need to unzip the code into the same format as we do for a git clone
         else:
-            downloaded_zip = download_pypi_source(download_folder, checkout_config.download_uri)
+            downloaded_zip = download_pypi_source(download_folder, checkout_config)
             unzip_staging_folder = prep_directory(os.path.join(download_folder, checkout_config.package))
             unzipped_staged = unzip_file_to_directory(downloaded_zip, unzip_staging_folder)
             assembly_location = prep_directory(

@@ -1,10 +1,7 @@
 from typing import List, Any, Optional
 import os
-import bs4
-import urllib3
 from ci_tools.variables import str_to_bool
 
-http = urllib3.PoolManager()
 # arguments: |
 #       -c "${{ replace(convertToJson(parameters.CondaArtifacts), '"', '\"') }}"
 #       -w "$(Build.SourcesDirectory)/conda/conda-recipes"
@@ -48,22 +45,6 @@ http = urllib3.PoolManager()
 #       version: 12.7.0
 
 
-def get_package_sdist_url(package: str, version: str) -> str:
-    url = f"https://pypi.org/pypi/{package}/{version}/json"
-    response = http.request("GET", url)
-
-    if response.status != 200:
-        raise RuntimeError(f"Failed to fetch metadata for {package}@{version} from PyPI.")
-
-    data = response.json()
-
-    for file_info in data.get("urls", []):
-        if file_info.get("packagetype") == "sdist":
-            return file_info["url"]
-
-    raise ValueError(f"Unable to find a source distribution for {package}@{version}.")
-
-
 class CheckoutConfiguration:
     def __init__(self, raw_json: dict):
         # we should always have a package name
@@ -77,19 +58,29 @@ class CheckoutConfiguration:
         self.version = raw_json.get("version", None)
         self.download_uri = raw_json.get("download_uri", None)
 
-        if self.version and self.checkout_path is None:
-            self.download_uri = get_package_sdist_url(self.package, self.version)
-
-        if not self.checkout_path and not self.download_uri:
+        if not self.checkout_path and not self.download_uri and not self.version:
             raise ValueError(
-                "When defining a checkout configuration, one must either have a valid PyPI download url"
-                " (download_uri) or a path and version in the repo (checkout_path, version)."
+                "When defining a checkout configuration, one must either have a PyPI package version"
+                " (version) or download url (download_uri), or a path and version in the repo"
+                " (checkout_path, version)."
             )
+
+    @property
+    def is_pypi_source(self) -> bool:
+        """True when the source is fetched from PyPI rather than git-cloned from the repo.
+
+        A direct ``download_uri`` or a bare ``version`` (no ``checkout_path``) is
+        resolved from PyPI; the build fetches the sdist via ``pip download``,
+        which authenticates to the Azure DevOps feed and pulls through upstream.
+        """
+        return bool(self.download_uri) or bool(self.version and not self.checkout_path)
 
     def __str__(self) -> str:
         if self.download_uri:
             return f"""- {self.package} downloaded from pypi
   {self.download_uri}"""
+        elif self.is_pypi_source:
+            return f"""- {self.package}=={self.version} downloaded from pypi"""
         else:
             return f"""- {self.checkout_path}/{self.package} from git @ {self.version}"""
 

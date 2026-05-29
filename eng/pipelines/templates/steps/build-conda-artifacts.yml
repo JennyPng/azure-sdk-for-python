@@ -15,6 +15,14 @@ steps:
     inputs:
       versionSpec: $(PythonVersion)
 
+  # Authenticate pip to the dev feed so sdist downloads (pip download) resolve
+  # through the authenticated Azure DevOps feed + upstream pull-through. The
+  # build agent is network-restricted and cannot reach pypi.org directly.
+  - template: /eng/pipelines/templates/steps/auth-dev-feed.yml
+    parameters:
+      EnableTwineAuth: false
+      EnableUvAuth: false
+
   - pwsh: |
       $ErrorActionPreference = 'Stop'
       $PSNativeCommandUseErrorActionPreference = $true

@@ -14,7 +14,7 @@ from conda_helper_functions import (
     parse_csv,
     separate_packages_by_type,
     package_needs_update,
-    get_package_data_from_pypi,
+    get_latest_version_from_pypi,
     build_package_index,
     get_package_path,
     get_bundle_name,
@@ -43,7 +43,7 @@ CONDA_MGMT_META_YAML_PATH = os.path.join(CONDA_RECIPES_DIR, "azure-mgmt", "meta.
 RELEASE_PERIOD_MONTHS = 3
 
 # packages that should be shipped but are known to be missing from the csv - store version here
-PACKAGES_WITH_DOWNLOAD_URI = {
+PACKAGES_NOT_IN_CSV = {
     "msal": "",
     "msal-extensions": "",
 }
@@ -178,39 +178,41 @@ def update_conda_sdk_client_yml(
             )
             result.append(pkg_name)
 
-    # handle download_uri for packages known to be missing from the csv
-    for pkg_name in PACKAGES_WITH_DOWNLOAD_URI:
+    # handle packages known to be missing from the csv
+    for pkg_name in PACKAGES_NOT_IN_CSV:
         if pkg_name in package_index:
             artifact_idx, checkout_idx = package_index[pkg_name]
             checkout_item = conda_artifacts[artifact_idx]["checkout"][checkout_idx]
 
-            curr_download_uri = checkout_item.get("download_uri", "")
-            latest_version, download_uri = get_package_data_from_pypi(pkg_name)
+            curr_version = checkout_item.get("version", "")
+            latest_version = get_latest_version_from_pypi(pkg_name)
 
-            if not latest_version or not download_uri:
+            if not latest_version:
                 logger.warning(
-                    f"Could not retrieve latest version or download URI for {pkg_name} from PyPI, skipping"
+                    f"Could not retrieve latest version for {pkg_name} from PyPI, skipping"
                 )
                 result.append(pkg_name)
                 continue
 
             # store retrieved version for release log
-            PACKAGES_WITH_DOWNLOAD_URI[pkg_name] = latest_version
+            PACKAGES_NOT_IN_CSV[pkg_name] = latest_version
 
-            if curr_download_uri != download_uri:
-                # version needs update
+            if curr_version != latest_version:
+                # version needs update; the build pipeline resolves the sdist
+                # from this version via pip (authenticated feed pull-through),
+                # so no download_uri is stored.
                 logger.info(
-                    f"Package {pkg_name} download_uri mismatch with PyPi, updating {curr_download_uri} to {download_uri}"
+                    f"Package {pkg_name} version mismatch with PyPi, updating {curr_version} to {latest_version}"
                 )
-                # checkout for these packages only has download_uri, no version field
-                checkout_item["download_uri"] = download_uri
+                checkout_item.pop("download_uri", None)
+                checkout_item["version"] = latest_version
                 logger.info(
-                    f"Updated download_uri for {pkg_name} with version {latest_version}: {download_uri}"
+                    f"Updated version for {pkg_name} to {latest_version}"
                 )
                 updated_count += 1
         else:
             logger.warning(
-                f"Package {pkg_name} not found in conda-sdk-client.yml, skipping download_uri update"
+                f"Package {pkg_name} not found in conda-sdk-client.yml, skipping version update"
             )
             result.append(pkg_name)
 
@@ -737,7 +739,7 @@ def update_data_plane_release_logs(
         if (
             curr_service_name not in package_dict
             and curr_service_name not in bundle_map
-            and curr_service_name not in PACKAGES_WITH_DOWNLOAD_URI
+            and curr_service_name not in PACKAGES_NOT_IN_CSV
         ):
             logger.warning(
                 f"Existing release log service {curr_service_name} was not found in CSV data, skipping update. It may be deprecated."
@@ -761,12 +763,12 @@ def update_data_plane_release_logs(
                     )
                     result.append(pkg_name)
         else:
-            # handle exception for packages with download_uri
-            if curr_service_name in PACKAGES_WITH_DOWNLOAD_URI:
-                version = PACKAGES_WITH_DOWNLOAD_URI[curr_service_name]
+            # handle exception for packages not present in the csv
+            if curr_service_name in PACKAGES_NOT_IN_CSV:
+                version = PACKAGES_NOT_IN_CSV[curr_service_name]
                 if not version:
                     logger.error(
-                        f"Package {curr_service_name} with download_uri is missing version info, it may be deprecated. Skipping in release log update"
+                        f"Package {curr_service_name} not in csv is missing version info, it may be deprecated. Skipping in release log update"
                     )
                     result.append(curr_service_name)
                     continue

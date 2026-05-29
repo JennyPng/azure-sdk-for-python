@@ -4,17 +4,18 @@ Helper functions for updating conda files.
 
 import os
 import glob
-import re
+import json
+import sys
+import subprocess
 from functools import lru_cache
 from typing import Optional
-from urllib.parse import urljoin
 import csv
 from ci_tools.logging import logger
 import urllib.request
 from datetime import datetime
 from ci_tools.parsing import ParsedSetup
 from packaging.version import Version
-from pypi_tools.pypi import PyPIClient, retrieve_versions_from_pypi
+from pypi_tools.pypi import retrieve_versions_from_pypi
 
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -252,107 +253,53 @@ def is_stable_on_pypi(package_name: str) -> bool:
         return False
 
 
-def _get_package_data_from_simple_api(
-    package_name: str,
-) -> tuple[Optional[str], Optional[str]]:
-    """Fetch latest version and sdist download URI via PEP 503 Simple API.
+def get_latest_version_from_pypi(package_name: str) -> Optional[str]:
+    """Resolve the latest stable version of a package via a ``pip download`` dry-run.
 
-    Used as a fallback when the PyPI JSON API is unavailable, e.g. when
-    PIP_INDEX_URL points to an Azure DevOps Artifacts feed (set by PipAuthenticate@1).
+    pip honors ``PIP_INDEX_URL`` (set by PipAuthenticate@1), so on a network-
+    restricted agent it authenticates to the Azure DevOps feed and triggers an
+    upstream pull-through against PyPI — making a newly released version
+    resolvable even when the agent itself cannot reach pypi.org directly.
 
-    This queries the public pypi.org Simple index directly (not PIP_INDEX_URL).
-    An Azure Artifacts feed only lists upstream versions after they have been
-    saved into the feed by an install, and even then can lag the public registry
-    by hours — so it cannot reliably surface a newly released version. Reading
-    pypi.org directly avoids that staleness and yields canonical
-    files.pythonhosted.org download URLs suitable for persisting in
-    conda-sdk-client.yml. pypi.org/simple is public, so no auth is required.
+    This uses ``--dry-run --report -`` to resolve without downloading any
+    distribution and reads the resolved version from pip's JSON install report.
+    By default prereleases are excluded, so the resolved value is the latest
+    stable release. The build pipeline fetches the sdist via ``pip download``
+    at assembly time.
     """
-    simple_url = f"https://pypi.org/simple/{package_name}/"
-
     try:
-        headers = {"Accept": "text/html"}
-        req = urllib.request.Request(simple_url, headers=headers)
-        with urllib.request.urlopen(req, timeout=30) as response:
-            html = response.read().decode("utf-8")
-
-        # Parse PEP 503 HTML: each <a href="url#hash">filename</a> is a distribution file.
-        link_re = re.compile(
-            r'<a\s+[^>]*href="([^"]+)"[^>]*>([^<]+)</a>', re.IGNORECASE
+        result = subprocess.run(
+            [
+                sys.executable, "-m", "pip", "download",
+                package_name,
+                "--no-deps",
+                "--dry-run",
+                "--report", "-",
+                "--quiet",
+            ],
+            check=True,
+            capture_output=True,
+            timeout=300,
         )
-        # Match sdist filenames like "msal-1.35.0.tar.gz" (hyphens may appear as [-_.] per PEP 625)
-        # Split on separators first, escape each segment, then rejoin with a flexible separator pattern.
-        name_parts = re.split(r"[-_.]+", package_name)
-        name_normalized = "[-_.]+".join(re.escape(part) for part in name_parts)
-        ver_re = re.compile(f"^{name_normalized}-(.+)\\.tar\\.gz$", re.IGNORECASE)
-
-        candidates = []
-        for m in link_re.finditer(html):
-            href, filename = m.group(1), m.group(2)
-            ver_m = ver_re.match(filename)
-            if ver_m:
-                ver_str = ver_m.group(1)
-                try:
-                    ver = Version(ver_str)
-                    # Strip the #sha256=... fragment; resolve relative href against base URL
-                    url = urljoin(req.full_url, href.split("#")[0])
-                    candidates.append((ver, ver_str, url))
-                except Exception:
-                    continue
-
-        if not candidates:
-            return None, None
-
-        # Pick the latest stable (non-prerelease) version
-        candidates.sort(key=lambda x: x[0], reverse=True)
-        for ver, ver_str, url in candidates:
-            if not ver.is_prerelease:
-                logger.info(
-                    f"Found download URL via Simple API for {package_name}=={ver_str}"
-                )
-                return ver_str, url
-
-        # Fall back to latest prerelease if no stable version exists
-        _, ver_str, url = candidates[0]
-        logger.info(f"Found download URL via Simple API for {package_name}=={ver_str}")
-        return ver_str, url
-
-    except Exception as e:
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+        stderr = getattr(e, "stderr", b"") or b""
         logger.error(
-            f"Failed to fetch package data from Simple API for {package_name}: {e}"
+            f"pip download dry-run failed for {package_name}: {stderr.decode(errors='replace')}"
         )
-        return None, None
+        return None
 
-
-def get_package_data_from_pypi(
-    package_name: str,
-) -> tuple[Optional[str], Optional[str]]:
-    """Fetch the latest version and download URI for a package from PyPI."""
+    output = result.stdout.decode(errors="replace")
     try:
-        client = PyPIClient()
-        data = client.project(package_name)
-
-        # Get the latest version
-        latest_version = data["info"]["version"]
-        if latest_version in data["releases"] and data["releases"][latest_version]:
-            # Get the source distribution (sdist) if available
-            files = data["releases"][latest_version]
-            source_dist = next((f for f in files if f["packagetype"] == "sdist"), None)
-            if source_dist:
-                download_url = source_dist["url"]
-                logger.info(
-                    f"Found download URL for {package_name}=={latest_version}: {download_url}"
-                )
-                return latest_version, download_url
-
-    except NotImplementedError:
-        logger.info(
-            f"PyPI JSON API unavailable, falling back to Simple API for {package_name}"
+        report = json.loads(output)
+        version = report["install"][0]["metadata"]["version"]
+    except (ValueError, KeyError, IndexError, TypeError) as e:
+        logger.error(
+            f"Could not parse version from pip report for {package_name}: {e}; output={output!r}"
         )
-        return _get_package_data_from_simple_api(package_name)
-    except Exception as e:
-        logger.error(f"Failed to fetch download URI from PyPI for {package_name}: {e}")
-    return None, None
+        return None
+
+    logger.info(f"Resolved latest version for {package_name} via pip: {version}")
+    return version
 
 
 def build_package_index(conda_artifacts: list[dict]) -> dict[str, tuple[int, int]]:
