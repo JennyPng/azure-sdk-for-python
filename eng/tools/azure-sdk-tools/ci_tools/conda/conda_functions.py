@@ -114,7 +114,11 @@ def create_namespace_extension(target_directory: str):
 
 
 def get_pkgs_from_build_directory(build_directory: str, artifact_name: str):
-    return [os.path.join(build_directory, p) for p in os.listdir(build_directory) if p != artifact_name]
+    return [
+        os.path.join(build_directory, p)
+        for p in os.listdir(build_directory)
+        if p != artifact_name
+    ]
 
 
 def create_sdist_skeleton(build_directory, artifact_name, common_root):
@@ -204,7 +208,11 @@ def get_manifest_includes(common_root):
 
 
 def create_setup_files(
-    build_directory: str, common_root: str, artifact_name: str, service: str, environment_config: str
+    build_directory: str,
+    common_root: str,
+    artifact_name: str,
+    service: str,
+    environment_config: str,
 ) -> None:
     """
     Drop all the necessary files to create a properly formatted python package. This includes:
@@ -229,7 +237,9 @@ def create_setup_files(
         f.write(setup_template)
 
     manifest_template = MANIFEST_TEMPLATE.format(
-        namespace_includes="\n".join(["include " + ns for ns in get_manifest_includes(common_root)])
+        namespace_includes="\n".join(
+            ["include " + ns for ns in get_manifest_includes(common_root)]
+        )
     )
 
     with open(manifest_location, "w") as f:
@@ -245,7 +255,9 @@ def tolerant_match(pkg_name, input_string):
 
 
 def create_combined_sdist(
-    conda_build: CondaConfiguration, config_assembly_folder: str, config_assembled_folder: str
+    conda_build: CondaConfiguration,
+    config_assembly_folder: str,
+    config_assembled_folder: str,
 ) -> str:
     """
     Given a single conda package config which has already been assembled, create a combined source distribution that combines
@@ -254,12 +266,16 @@ def create_combined_sdist(
 
     # get the meta.yml from the conda-recipes folder for this package name
     repo_root = discover_repo_root()
-    environment_config = os.path.join(repo_root, "conda", "conda-recipes", "conda_env.yml")
+    environment_config = os.path.join(
+        repo_root, "conda", "conda-recipes", "conda_env.yml"
+    )
 
     singular_dependency = len(conda_build.checkout) == 1
 
     if not singular_dependency:
-        create_sdist_skeleton(config_assembly_folder, conda_build.name, conda_build.common_root)
+        create_sdist_skeleton(
+            config_assembly_folder, conda_build.name, conda_build.common_root
+        )
         create_setup_files(
             config_assembly_folder,
             conda_build.common_root,
@@ -284,16 +300,24 @@ def create_combined_sdist(
             )
             return assembled_sdist
 
-    targeted_folder_for_assembly = os.path.join(config_assembly_folder, conda_build.name)
+    targeted_folder_for_assembly = os.path.join(
+        config_assembly_folder, conda_build.name
+    )
 
-    create_package(targeted_folder_for_assembly, config_assembled_folder, enable_wheel=False, enable_sdist=True)
+    create_package(
+        targeted_folder_for_assembly,
+        config_assembled_folder,
+        enable_wheel=False,
+        enable_sdist=True,
+    )
 
     assembled_sdist = next(
         iter(
             [
                 os.path.join(config_assembled_folder, a)
                 for a in os.listdir(config_assembled_folder)
-                if os.path.isfile(os.path.join(config_assembled_folder, a)) and tolerant_match(conda_build.name, a)
+                if os.path.isfile(os.path.join(config_assembled_folder, a))
+                and tolerant_match(conda_build.name, a)
             ]
         )
     )
@@ -302,13 +326,17 @@ def create_combined_sdist(
 
 
 def get_summary(conda_config: CondaConfiguration):
-    pkg_list = [f"{checkout_config.package}=={checkout_config.version}" for checkout_config in conda_config.checkout]
+    pkg_list = [
+        f"{checkout_config.package}=={checkout_config.version}"
+        for checkout_config in conda_config.checkout
+    ]
 
     return SUMMARY_TEMPLATE.format(", ".join(pkg_list))
 
 
 def output_workload(
-    run_configurations: List[CondaConfiguration], excluded_configurations: List[CondaConfiguration]
+    run_configurations: List[CondaConfiguration],
+    excluded_configurations: List[CondaConfiguration],
 ) -> None:
     """Show all packages and what order they will be built in."""
     print("This build run is generating the following package configurations: ")
@@ -350,18 +378,25 @@ def get_git_source(
 ) -> None:
     clone_folder = prep_directory(os.path.join(assembly_area, target_package))
     code_destination = os.path.join(
-        assembled_code_area, resolve_assembly_folder_name(target_package, conda_package_name)
+        assembled_code_area,
+        resolve_assembly_folder_name(target_package, conda_package_name),
     )
     code_source = os.path.join(clone_folder, checkout_path, target_package)
 
     invoke_command(
-        f"git clone --no-checkout --filter=tree:0 https://github.com/Azure/azure-sdk-for-python .", clone_folder
+        f"git clone --no-checkout --filter=tree:0 https://github.com/Azure/azure-sdk-for-python .",
+        clone_folder,
     )
     invoke_command(f"git config gc.auto 0", clone_folder)
     invoke_command(f"git sparse-checkout init", clone_folder)
-    invoke_command(f"git sparse-checkout set --no-cone '/*' '!/*/' '/eng'", clone_folder)
+    invoke_command(
+        f"git sparse-checkout set --no-cone '/*' '!/*/' '/eng'", clone_folder
+    )
     invoke_command(f'git sparse-checkout add "{checkout_path}"', clone_folder)
-    invoke_command(f"git -c advice.detachedHead=false checkout {target_package}_{target_version}", clone_folder)
+    invoke_command(
+        f"git -c advice.detachedHead=false checkout {target_package}_{target_version}",
+        clone_folder,
+    )
 
     shutil.move(code_source, code_destination)
 
@@ -372,15 +407,20 @@ def _pip_download_sdist(target_folder: str, package: str, version: str) -> str:
     pip honors ``PIP_INDEX_URL`` (set by PipAuthenticate@1), so on a network-
     restricted build agent it authenticates to the Azure DevOps feed and pulls
     the package through from the PyPI upstream — no direct pypi.org access needed.
-    Returns the path to the downloaded ``.tar.gz``.
+    Returns the path to the downloaded source distribution (``.tar.gz`` or ``.zip``).
     """
     subprocess.run(
         [
-            sys.executable, "-m", "pip", "download",
+            sys.executable,
+            "-m",
+            "pip",
+            "download",
             f"{package}=={version}",
             "--no-deps",
-            "--no-binary", ":all:",
-            "--dest", target_folder,
+            "--no-binary",
+            ":all:",
+            "--dest",
+            target_folder,
         ],
         check=True,
         timeout=300,
@@ -389,15 +429,21 @@ def _pip_download_sdist(target_folder: str, package: str, version: str) -> str:
     sdists = [
         os.path.join(target_folder, f)
         for f in os.listdir(target_folder)
-        if f.endswith(".tar.gz") and tolerant_match(package, f)
+        if f.endswith((".tar.gz", ".zip"))
+        and tolerant_match(package, f)
+        and version in f
     ]
     if not sdists:
-        raise RuntimeError(f"pip download produced no sdist for {package}=={version} in {target_folder}.")
+        raise RuntimeError(
+            f"pip download produced no sdist for {package}=={version} in {target_folder}."
+        )
 
     return sdists[0]
 
 
-def download_pypi_source(target_folder: str, checkout_config: CheckoutConfiguration) -> str:
+def download_pypi_source(
+    target_folder: str, checkout_config: CheckoutConfiguration
+) -> str:
     """Fetch a PyPI sdist into target_folder, returning its path.
 
     Prefers ``pip download`` by package==version (works on network-restricted
@@ -405,7 +451,9 @@ def download_pypi_source(target_folder: str, checkout_config: CheckoutConfigurat
     fetch only when no version is available (legacy configs).
     """
     if checkout_config.version:
-        return _pip_download_sdist(target_folder, checkout_config.package, checkout_config.version)
+        return _pip_download_sdist(
+            target_folder, checkout_config.package, checkout_config.version
+        )
 
     target_uri = checkout_config.download_uri
     basename = os.path.basename(target_uri)
@@ -414,7 +462,9 @@ def download_pypi_source(target_folder: str, checkout_config: CheckoutConfigurat
     if os.path.exists(file_name):
         return file_name
 
-    with urllib.request.urlopen(target_uri) as response, open(file_name, "wb") as out_file:
+    with urllib.request.urlopen(target_uri) as response, open(
+        file_name, "wb"
+    ) as out_file:
         shutil.copyfileobj(response, out_file)
 
     return file_name
@@ -438,10 +488,19 @@ def get_package_source(
         # in case of multiple external packages, we need to unzip the code into the same format as we do for a git clone
         else:
             downloaded_zip = download_pypi_source(download_folder, checkout_config)
-            unzip_staging_folder = prep_directory(os.path.join(download_folder, checkout_config.package))
-            unzipped_staged = unzip_file_to_directory(downloaded_zip, unzip_staging_folder)
+            unzip_staging_folder = prep_directory(
+                os.path.join(download_folder, checkout_config.package)
+            )
+            unzipped_staged = unzip_file_to_directory(
+                downloaded_zip, unzip_staging_folder
+            )
             assembly_location = prep_directory(
-                os.path.join(assembly_location, resolve_assembly_folder_name(checkout_config.package, conda_build.name))
+                os.path.join(
+                    assembly_location,
+                    resolve_assembly_folder_name(
+                        checkout_config.package, conda_build.name
+                    ),
+                )
             )
 
             # During unzip, we often end up one level deeper than we intend.
@@ -473,7 +532,9 @@ def get_package_source(
         )
 
 
-def assemble_source(conda_configurations: List[CondaConfiguration], repo_root: str) -> None:
+def assemble_source(
+    conda_configurations: List[CondaConfiguration], repo_root: str
+) -> None:
     """This function takes a set of conda configurations as an input and creates the necessary artifacts to produce a successful conda build.
     The function utilizes 3 temporary directories to do this. Appearing in order of usage:
 
@@ -497,22 +558,32 @@ def assemble_source(conda_configurations: List[CondaConfiguration], repo_root: s
     sdist_output_dir = prep_directory(os.path.join(repo_root, "conda", "assembled"))
     sdist_assembly_area = prep_directory(os.path.join(repo_root, "conda", "assembly"))
     sdist_download_area = prep_directory(os.path.join(repo_root, "conda", "downloaded"))
-    environment_config = os.path.join(repo_root, "conda", "conda-recipes", "conda_env.yml")
+    environment_config = os.path.join(
+        repo_root, "conda", "conda-recipes", "conda_env.yml"
+    )
     version = get_version_from_config(environment_config)
 
     for conda_build in conda_configurations:
         print(f"Beginning processing for {conda_build.name}.")
-        meta_yml = os.path.join(repo_root, "conda", "conda-recipes", conda_build.name, "meta.yaml")
+        meta_yml = os.path.join(
+            repo_root, "conda", "conda-recipes", conda_build.name, "meta.yaml"
+        )
         if not os.path.exists(meta_yml):
             raise ValueError(
                 f"Unable to handle a targeted conda assembly which has no defined meta.yml within conda/conda-recipes/{conda_build.name}."
             )
 
-        config_download_folder = prep_directory(os.path.join(sdist_download_area, conda_build.name))
-        config_assembly_folder = prep_directory(os.path.join(sdist_assembly_area, conda_build.name))
+        config_download_folder = prep_directory(
+            os.path.join(sdist_download_area, conda_build.name)
+        )
+        config_assembly_folder = prep_directory(
+            os.path.join(sdist_assembly_area, conda_build.name)
+        )
         # our base assembled folder will contain the tar.gz list, placing the meta.yaml recipe one level
         # deeper and named for the package name
-        config_assembled_folder = prep_directory(os.path.join(sdist_output_dir, conda_build.name))
+        config_assembled_folder = prep_directory(
+            os.path.join(sdist_output_dir, conda_build.name)
+        )
         generated_yml = os.path.join(config_assembled_folder, "meta.yaml")
 
         # <Code Location 1> -> /conda/downloaded/run_configuration_package/<downloaded-package-name-1>/
@@ -541,7 +612,9 @@ def assemble_source(conda_configurations: List[CondaConfiguration], repo_root: s
         conda_build.created_sdist_path = create_combined_sdist(
             conda_build, config_assembly_folder, sdist_output_dir
         ).replace("\\", "/")
-        print(f"Generated Sdist for artifact {conda_build.name} is present at {conda_build.created_sdist_path}")
+        print(
+            f"Generated Sdist for artifact {conda_build.name} is present at {conda_build.created_sdist_path}"
+        )
 
         # generate a meta.yml for each one!
         with open(meta_yml, "r", encoding="utf-8") as f:
@@ -551,10 +624,17 @@ def assemble_source(conda_configurations: List[CondaConfiguration], repo_root: s
 
         sdist = os.path.basename(conda_build.created_sdist_path)
 
-        meta_yml_content = meta_yml_content.replace("{{ environ.get('AZURESDK_CONDA_VERSION', '0.0.0') }}", version)
-        meta_yml_content = re.sub(r"^\s*url\:.*", f'  url: "../{sdist}"', meta_yml_content, flags=re.MULTILINE)
+        meta_yml_content = meta_yml_content.replace(
+            "{{ environ.get('AZURESDK_CONDA_VERSION', '0.0.0') }}", version
+        )
         meta_yml_content = re.sub(
-            r"\{\{\senviron\.get\(\'.*_SUMMARY\'\,\s\'\'\)\s*\}\}", f"{summary}", meta_yml_content, flags=re.MULTILINE
+            r"^\s*url\:.*", f'  url: "../{sdist}"', meta_yml_content, flags=re.MULTILINE
+        )
+        meta_yml_content = re.sub(
+            r"\{\{\senviron\.get\(\'.*_SUMMARY\'\,\s\'\'\)\s*\}\}",
+            f"{summary}",
+            meta_yml_content,
+            flags=re.MULTILINE,
         )
 
         with open(generated_yml, "w", encoding="utf-8") as f:
@@ -564,10 +644,16 @@ def assemble_source(conda_configurations: List[CondaConfiguration], repo_root: s
 def prep_and_create_environment(environment_dir: str) -> None:
     environment_dir = prep_directory(environment_dir)
 
-    with open(os.path.join(environment_dir, "environment.yml"), "w", encoding="utf-8") as f:
+    with open(
+        os.path.join(environment_dir, "environment.yml"), "w", encoding="utf-8"
+    ) as f:
         f.write(CONDA_ENV_FILE)
 
-    subprocess.run(["conda", "env", "create", "--prefix", environment_dir], cwd=environment_dir, check=True)
+    subprocess.run(
+        ["conda", "env", "create", "--prefix", environment_dir],
+        cwd=environment_dir,
+        check=True,
+    )
     subprocess.run(
         [
             "conda",
@@ -584,11 +670,25 @@ def prep_and_create_environment(environment_dir: str) -> None:
         cwd=environment_dir,
         check=True,
     )
-    subprocess.run(["conda", "run", "--prefix", environment_dir, "conda", "list"], cwd=environment_dir, check=True)
+    subprocess.run(
+        ["conda", "run", "--prefix", environment_dir, "conda", "list"],
+        cwd=environment_dir,
+        check=True,
+    )
 
 
-def copy_channel_files(coalescing_channel_dir: str, additional_channel_dir: str) -> None:
-    artifact_directories = ["noarch", "win-64", "win-x86", "osx-64", "osx-x86", "linux-64", "linux-x86"]
+def copy_channel_files(
+    coalescing_channel_dir: str, additional_channel_dir: str
+) -> None:
+    artifact_directories = [
+        "noarch",
+        "win-64",
+        "win-x86",
+        "osx-64",
+        "osx-x86",
+        "linux-64",
+        "linux-x86",
+    ]
 
     if additional_channel_dir:
         for artifact_directory in artifact_directories:
@@ -597,7 +697,9 @@ def copy_channel_files(coalescing_channel_dir: str, additional_channel_dir: str)
                 for file in os.listdir(a_dir):
                     source = os.path.join(a_dir, file)
                     if os.path.isfile(source) and file.endswith(".tar.bz2"):
-                        target_directory = os.path.join(coalescing_channel_dir, artifact_directory)
+                        target_directory = os.path.join(
+                            coalescing_channel_dir, artifact_directory
+                        )
                         target_file = os.path.join(target_directory, file)
 
                         if not os.path.exists(target_directory):
@@ -611,55 +713,95 @@ def copy_channel_files(coalescing_channel_dir: str, additional_channel_dir: str)
 
 
 def build_conda_packages(
-    conda_configurations: List[CondaConfiguration], repo_root: str, additional_channel_folders: List[str]
+    conda_configurations: List[CondaConfiguration],
+    repo_root: str,
+    additional_channel_folders: List[str],
 ):
     """Conda builds each individually assembled conda package folder."""
-    conda_output_dir = prep_directory(os.path.join(repo_root, "conda", "output")).replace("\\", "/")
-    conda_broken_output_dir = prep_directory(os.path.join(repo_root, "conda", "broken")).replace("\\", "/")
+    conda_output_dir = prep_directory(
+        os.path.join(repo_root, "conda", "output")
+    ).replace("\\", "/")
+    conda_broken_output_dir = prep_directory(
+        os.path.join(repo_root, "conda", "broken")
+    ).replace("\\", "/")
     conda_sdist_dir = os.path.join(repo_root, "conda", "assembled").replace("\\", "/")
-    conda_env_dir = prep_directory(os.path.join(repo_root, "conda", "conda-env")).replace("\\", "/")
-    conda_broken_dir = prep_directory(os.path.join(repo_root, "conda", "conda-env", "conda-bld", "broken")).replace(
-        "\\", "/"
-    )
+    conda_env_dir = prep_directory(
+        os.path.join(repo_root, "conda", "conda-env")
+    ).replace("\\", "/")
+    conda_broken_dir = prep_directory(
+        os.path.join(repo_root, "conda", "conda-env", "conda-bld", "broken")
+    ).replace("\\", "/")
 
     prep_and_create_environment(conda_env_dir)
     if additional_channel_folders:
         for channel in additional_channel_folders:
             copy_channel_files(conda_output_dir, channel)
             subprocess.run(
-                ["conda", "run", "--prefix", conda_env_dir, "python", "-m", "conda_index", conda_output_dir],
+                [
+                    "conda",
+                    "run",
+                    "--prefix",
+                    conda_env_dir,
+                    "python",
+                    "-m",
+                    "conda_index",
+                    conda_output_dir,
+                ],
                 cwd=repo_root,
                 check=True,
             )
     else:
         if len(os.listdir(conda_output_dir)) > 1:
             subprocess.run(
-                ["conda", "run", "--prefix", conda_env_dir, "python", "-m", "conda_index", conda_output_dir],
+                [
+                    "conda",
+                    "run",
+                    "--prefix",
+                    conda_env_dir,
+                    "python",
+                    "-m",
+                    "conda_index",
+                    conda_output_dir,
+                ],
                 cwd=repo_root,
                 check=True,
             )
 
     return_codes = []
     for conda_build in conda_configurations:
-        conda_build_folder = os.path.join(conda_sdist_dir, conda_build.name).replace("\\", "/")
+        conda_build_folder = os.path.join(conda_sdist_dir, conda_build.name).replace(
+            "\\", "/"
+        )
 
         if conda_build.conda_py_versions:
             for pyversion in conda_build.conda_py_versions:
                 return_codes.append(
                     invoke_conda_build(
-                        conda_output_dir, conda_env_dir, conda_build_folder, pyversion, conda_build.channels
+                        conda_output_dir,
+                        conda_env_dir,
+                        conda_build_folder,
+                        pyversion,
+                        conda_build.channels,
                     )
                 )
         else:
             return_codes.append(
-                invoke_conda_build(conda_output_dir, conda_env_dir, conda_build_folder, None, conda_build.channels)
+                invoke_conda_build(
+                    conda_output_dir,
+                    conda_env_dir,
+                    conda_build_folder,
+                    None,
+                    conda_build.channels,
+                )
             )
 
         if os.path.exists(conda_broken_dir):
             if len(os.listdir(conda_broken_dir)):
                 for item in os.listdir(conda_broken_dir):
                     source_path = os.path.join(conda_broken_dir, item)
-                    dest_directory = os.path.join(conda_broken_output_dir, conda_build.name)
+                    dest_directory = os.path.join(
+                        conda_broken_output_dir, conda_build.name
+                    )
 
                     if not os.path.exists(dest_directory):
                         os.makedirs(dest_directory)
@@ -717,7 +859,9 @@ def check_conda_config():
 
 
 def entrypoint():
-    parser = argparse.ArgumentParser(description="Build a set of conda packages based on a json configuration bundle.")
+    parser = argparse.ArgumentParser(
+        description="Build a set of conda packages based on a json configuration bundle."
+    )
 
     repo_root = discover_repo_root()
 
@@ -737,13 +881,16 @@ def entrypoint():
         required=False,
     )
 
-    parser.add_argument("--channel", dest="channel", action="extend", nargs="+", type=str)
+    parser.add_argument(
+        "--channel", dest="channel", action="extend", nargs="+", type=str
+    )
 
     args = parser.parse_args()
 
     if not args.config and not args.config_file:
         raise argparse.ArgumentError(
-            "config arg", "One of either -c (--config) or -f (--file) argument must be provided."
+            "config arg",
+            "One of either -c (--config) or -f (--file) argument must be provided.",
         )
 
     if args.config_file:
@@ -758,7 +905,9 @@ def entrypoint():
     run_configurations = []
     excluded_configurations = []
 
-    for config in [CondaConfiguration.from_json(json_config) for json_config in json_configs]:
+    for config in [
+        CondaConfiguration.from_json(json_config) for json_config in json_configs
+    ]:
         if config.in_batch:
             run_configurations.append(config)
         else:

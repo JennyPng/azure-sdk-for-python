@@ -4,9 +4,10 @@ Helper functions for updating conda files.
 
 import os
 import glob
-import json
+import re
 import sys
 import subprocess
+import tempfile
 from functools import lru_cache
 from typing import Optional
 import csv
@@ -254,52 +255,67 @@ def is_stable_on_pypi(package_name: str) -> bool:
 
 
 def get_latest_version_from_pypi(package_name: str) -> Optional[str]:
-    """Resolve the latest stable version of a package via a ``pip download`` dry-run.
+    """Resolve the latest stable version of a package via ``pip download``.
 
     pip honors ``PIP_INDEX_URL`` (set by PipAuthenticate@1), so on a network-
     restricted agent it authenticates to the Azure DevOps feed and triggers an
     upstream pull-through against PyPI — making a newly released version
     resolvable even when the agent itself cannot reach pypi.org directly.
 
-    This uses ``--dry-run --report -`` to resolve without downloading any
-    distribution and reads the resolved version from pip's JSON install report.
-    By default prereleases are excluded, so the resolved value is the latest
-    stable release. The build pipeline fetches the sdist via ``pip download``
-    at assembly time.
+    We download the source distribution (``--no-deps --no-binary :all:``) into a
+    temporary directory and parse the version out of the resulting sdist
+    filename. By default prereleases are excluded, so the resolved value is the
+    latest stable release. An actual download (not a dry-run) is required to
+    force the feed's upstream pull-through.
     """
-    try:
-        result = subprocess.run(
-            [
-                sys.executable, "-m", "pip", "download",
-                package_name,
-                "--no-deps",
-                "--dry-run",
-                "--report", "-",
-                "--quiet",
-            ],
-            check=True,
-            capture_output=True,
-            timeout=300,
-        )
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-        stderr = getattr(e, "stderr", b"") or b""
-        logger.error(
-            f"pip download dry-run failed for {package_name}: {stderr.decode(errors='replace')}"
-        )
-        return None
+    with tempfile.TemporaryDirectory() as tmp:
+        try:
+            subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "pip",
+                    "download",
+                    package_name,
+                    "--no-deps",
+                    "--no-binary",
+                    ":all:",
+                    "--dest",
+                    tmp,
+                ],
+                check=True,
+                capture_output=True,
+                timeout=300,
+            )
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+            stderr = getattr(e, "stderr", b"") or b""
+            logger.error(
+                f"pip download failed for {package_name}: {stderr.decode(errors='replace')}"
+            )
+            return None
 
-    output = result.stdout.decode(errors="replace")
-    try:
-        report = json.loads(output)
-        version = report["install"][0]["metadata"]["version"]
-    except (ValueError, KeyError, IndexError, TypeError) as e:
-        logger.error(
-            f"Could not parse version from pip report for {package_name}: {e}; output={output!r}"
+        sdists = glob.glob(os.path.join(tmp, "*.tar.gz")) + glob.glob(
+            os.path.join(tmp, "*.zip")
         )
-        return None
+        if not sdists:
+            logger.error(f"No sdist produced by pip download for {package_name}")
+            return None
 
-    logger.info(f"Resolved latest version for {package_name} via pip: {version}")
-    return version
+        filename = os.path.basename(sdists[0])
+        name_parts = re.split(r"[-_.]+", package_name)
+        name_normalized = "[-_.]+".join(re.escape(part) for part in name_parts)
+        match = re.match(
+            rf"^{name_normalized}-(.+)\.(?:tar\.gz|zip)$", filename, re.IGNORECASE
+        )
+        if not match:
+            logger.error(
+                f"Could not parse version from sdist filename '{filename}' for {package_name}"
+            )
+            return None
+
+        version = match.group(1)
+        logger.info(f"Resolved latest version for {package_name} via pip: {version}")
+        return version
 
 
 def build_package_index(conda_artifacts: list[dict]) -> dict[str, tuple[int, int]]:
