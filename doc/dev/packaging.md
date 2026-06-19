@@ -2,6 +2,8 @@
 
 [comment]: # ( cspell:ignore myservice )
 
+> **Note:** New packages in this repository should use `pyproject.toml` for package metadata and build configuration. See the [azure-template package](https://github.com/Azure/azure-sdk-for-python/tree/main/sdk/template/azure-template/pyproject.toml) for a current example. The instructions below using `setup.py` apply to **legacy packages** only.
+
 This article describes the recommendations for defining namespace packaging to release a package inside the `azure` namespace. Being inside the `azure` namespace means that a service `myservice` can be imported using:
 ```python
 import azure.myservice
