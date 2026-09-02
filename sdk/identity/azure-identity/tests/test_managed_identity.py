@@ -828,9 +828,9 @@ def test_service_fabric(get_token_method):
     """Service Fabric 2019-07-01-preview"""
     access_token = "****"
     expires_on = 42
-    endpoint = "http://localhost:42/token"
+    endpoint = "https://localhost:42/token"
     secret = "expected-secret"
-    thumbprint = "SHA1HEX"
+    thumbprint = "0123456789abcdef0123456789abcdef01234567"
     scope = "scope"
 
     def send(request, **kwargs):
@@ -869,9 +869,9 @@ def test_service_fabric(get_token_method):
 def test_service_fabric_tenant_id(get_token_method):
     access_token = "****"
     expires_on = 42
-    endpoint = "http://localhost:42/token"
+    endpoint = "https://localhost:42/token"
     secret = "expected-secret"
-    thumbprint = "SHA1HEX"
+    thumbprint = "0123456789abcdef0123456789abcdef01234567"
     scope = "scope"
 
     def send(request, **kwargs):
@@ -912,7 +912,7 @@ def test_service_fabric_tenant_id(get_token_method):
 @pytest.mark.parametrize("get_token_method", GET_TOKEN_METHODS)
 def test_service_fabric_with_client_id_error(get_token_method):
     """ManagedIdentityCredential should raise an error if a user identity is provided."""
-    endpoint = "http://localhost:42"
+    endpoint = "https://localhost:42"
     with mock.patch(
         "os.environ",
         {
