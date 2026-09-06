@@ -6,7 +6,6 @@
 # Changes may cause incorrect behavior and will be lost if the code is regenerated.
 # --------------------------------------------------------------------------
 
-from typing import Optional
 from typing_extensions import Required, TypedDict
 
 
@@ -18,7 +17,7 @@ class User(TypedDict, total=False):
     :ivar name: The user's name. Required.
     :vartype name: str
     :ivar orders: The user's order list.
-    :vartype orders: list[~specs.azure.core.basic.models.UserOrder]
+    :vartype orders: list["UserOrder"]
     :ivar etag: The entity tag for this resource. Required.
     :vartype etag: str
     """
@@ -27,21 +26,10 @@ class User(TypedDict, total=False):
     """The user's id. Required."""
     name: Required[str]
     """The user's name. Required."""
-    orders: Optional[list["UserOrder"]]
+    orders: list["UserOrder"]
     """The user's order list."""
     etag: Required[str]
     """The entity tag for this resource. Required."""
-
-
-class UserList(TypedDict, total=False):
-    """UserList.
-
-    :ivar users: Required.
-    :vartype users: list[~specs.azure.core.basic.models.User]
-    """
-
-    users: Required[list["User"]]
-    """Required."""
 
 
 class UserOrder(TypedDict, total=False):
@@ -49,8 +37,8 @@ class UserOrder(TypedDict, total=False):
 
     :ivar id: The user's id. Required.
     :vartype id: int
-    :ivar user_id: The user's id. Required.
-    :vartype user_id: int
+    :ivar userId: The user's id. Required.
+    :vartype userId: int
     :ivar detail: The user's order detail. Required.
     :vartype detail: str
     """

@@ -6,7 +6,6 @@
 # Changes may cause incorrect behavior and will be lost if the code is regenerated.
 # --------------------------------------------------------------------------
 
-from typing import Optional
 from typing_extensions import Required, TypedDict
 
 
@@ -15,10 +14,10 @@ class TestModel(TypedDict, total=False):
 
     :ivar prop: Required.
     :vartype prop: str
-    :ivar changed_prop:
-    :vartype changed_prop: str
+    :ivar changedProp:
+    :vartype changedProp: str
     """
 
     prop: Required[str]
     """Required."""
-    changedProp: Optional[str]
+    changedProp: str

@@ -1,6 +1,5 @@
 # coding=utf-8
 
-from typing import Optional
 from typing_extensions import Required, TypedDict
 
 
@@ -13,8 +12,8 @@ class InnerModel(TypedDict, total=False):
     :vartype description: str
     """
 
-    name: Optional[str]
-    description: Optional[str]
+    name: str
+    description: str
 
 
 class Resource(TypedDict, total=False):
@@ -25,28 +24,28 @@ class Resource(TypedDict, total=False):
     :ivar description:
     :vartype description: str
     :ivar map:
-    :vartype map: dict[str, ~payload.jsonmergepatch.models.InnerModel]
+    :vartype map: dict[str, "InnerModel"]
     :ivar array:
-    :vartype array: list[~payload.jsonmergepatch.models.InnerModel]
-    :ivar int_value:
-    :vartype int_value: int
-    :ivar float_value:
-    :vartype float_value: float
-    :ivar inner_model:
-    :vartype inner_model: ~payload.jsonmergepatch.models.InnerModel
-    :ivar int_array:
-    :vartype int_array: list[int]
+    :vartype array: list["InnerModel"]
+    :ivar intValue:
+    :vartype intValue: int
+    :ivar floatValue:
+    :vartype floatValue: float
+    :ivar innerModel:
+    :vartype innerModel: "InnerModel"
+    :ivar intArray:
+    :vartype intArray: list[int]
     """
 
     name: Required[str]
     """Required."""
-    description: Optional[str]
-    map: Optional[dict[str, "InnerModel"]]
-    array: Optional[list["InnerModel"]]
-    intValue: Optional[int]
-    floatValue: Optional[float]
-    innerModel: Optional["InnerModel"]
-    intArray: Optional[list[int]]
+    description: str
+    map: dict[str, "InnerModel"]
+    array: list["InnerModel"]
+    intValue: int
+    floatValue: float
+    innerModel: "InnerModel"
+    intArray: list[int]
 
 
 class ResourcePatch(TypedDict, total=False):
@@ -55,23 +54,23 @@ class ResourcePatch(TypedDict, total=False):
     :ivar description:
     :vartype description: str
     :ivar map:
-    :vartype map: dict[str, ~payload.jsonmergepatch.models.InnerModel]
+    :vartype map: dict[str, "InnerModel"]
     :ivar array:
-    :vartype array: list[~payload.jsonmergepatch.models.InnerModel]
-    :ivar int_value:
-    :vartype int_value: int
-    :ivar float_value:
-    :vartype float_value: float
-    :ivar inner_model:
-    :vartype inner_model: ~payload.jsonmergepatch.models.InnerModel
-    :ivar int_array:
-    :vartype int_array: list[int]
+    :vartype array: list["InnerModel"]
+    :ivar intValue:
+    :vartype intValue: int
+    :ivar floatValue:
+    :vartype floatValue: float
+    :ivar innerModel:
+    :vartype innerModel: "InnerModel"
+    :ivar intArray:
+    :vartype intArray: list[int]
     """
 
-    description: Optional[str]
-    map: Optional[dict[str, "InnerModel"]]
-    array: Optional[list["InnerModel"]]
-    intValue: Optional[int]
-    floatValue: Optional[float]
-    innerModel: Optional["InnerModel"]
-    intArray: Optional[list[int]]
+    description: str
+    map: dict[str, "InnerModel"]
+    array: list["InnerModel"]
+    intValue: int
+    floatValue: float
+    innerModel: "InnerModel"
+    intArray: list[int]

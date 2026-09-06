@@ -6,7 +6,7 @@
 # Changes may cause incorrect behavior and will be lost if the code is regenerated.
 # --------------------------------------------------------------------------
 
-from typing import Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union
 from typing_extensions import Required, TypedDict
 
 if TYPE_CHECKING:
@@ -16,55 +16,35 @@ if TYPE_CHECKING:
 class ActionRequest(TypedDict, total=False):
     """ActionRequest.
 
-    :ivar string_property: Required.
-    :vartype string_property: str
-    :ivar model_property:
-    :vartype model_property: ~specs.azure.example.basic.models.Model
-    :ivar array_property:
-    :vartype array_property: list[str]
-    :ivar record_property:
-    :vartype record_property: dict[str, str]
+    :ivar stringProperty: Required.
+    :vartype stringProperty: str
+    :ivar modelProperty:
+    :vartype modelProperty: "Model"
+    :ivar arrayProperty:
+    :vartype arrayProperty: list[str]
+    :ivar recordProperty:
+    :vartype recordProperty: dict[str, str]
     """
 
     stringProperty: Required[str]
     """Required."""
-    modelProperty: Optional["Model"]
-    arrayProperty: Optional[list[str]]
-    recordProperty: Optional[dict[str, str]]
-
-
-class ActionResponse(TypedDict, total=False):
-    """ActionResponse.
-
-    :ivar string_property: Required.
-    :vartype string_property: str
-    :ivar model_property:
-    :vartype model_property: ~specs.azure.example.basic.models.Model
-    :ivar array_property:
-    :vartype array_property: list[str]
-    :ivar record_property:
-    :vartype record_property: dict[str, str]
-    """
-
-    stringProperty: Required[str]
-    """Required."""
-    modelProperty: Optional["Model"]
-    arrayProperty: Optional[list[str]]
-    recordProperty: Optional[dict[str, str]]
+    modelProperty: "Model"
+    arrayProperty: list[str]
+    recordProperty: dict[str, str]
 
 
 class Model(TypedDict, total=False):
     """Model.
 
-    :ivar int32_property:
-    :vartype int32_property: int
-    :ivar float32_property:
-    :vartype float32_property: float
-    :ivar enum_property: "EnumValue1"
-    :vartype enum_property: str or ~specs.azure.example.basic.models.EnumEnum
+    :ivar int32Property:
+    :vartype int32Property: int
+    :ivar float32Property:
+    :vartype float32Property: float
+    :ivar enumProperty: "EnumValue1"
+    :vartype enumProperty: Union[str, "EnumEnum"]
     """
 
-    int32Property: Optional[int]
-    float32Property: Optional[float]
-    enumProperty: Optional[Union[str, "EnumEnum"]]
+    int32Property: int
+    float32Property: float
+    enumProperty: Union[str, "EnumEnum"]
     """\"EnumValue1\""""

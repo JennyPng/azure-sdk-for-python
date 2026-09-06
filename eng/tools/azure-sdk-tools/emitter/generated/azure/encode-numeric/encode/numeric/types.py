@@ -6,7 +6,6 @@
 # Changes may cause incorrect behavior and will be lost if the code is regenerated.
 # --------------------------------------------------------------------------
 
-from typing import Optional
 from typing_extensions import Required, TypedDict
 
 
@@ -28,7 +27,7 @@ class Uint32AsStringProperty(TypedDict, total=False):
     :vartype value: int
     """
 
-    value: Optional[int]
+    value: int
 
 
 class Uint8AsStringProperty(TypedDict, total=False):

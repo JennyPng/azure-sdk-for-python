@@ -6,7 +6,7 @@
 # Changes may cause incorrect behavior and will be lost if the code is regenerated.
 # --------------------------------------------------------------------------
 
-from typing import Any, Optional
+from typing import Any
 from typing_extensions import Required, TypedDict
 
 
@@ -16,7 +16,7 @@ class ChildFlattenModel(TypedDict, total=False):
     :ivar summary: Required.
     :vartype summary: str
     :ivar properties: Required.
-    :vartype properties: ~specs.azure.clientgenerator.core.flattenproperty.models.ChildModel
+    :vartype properties: "ChildModel"
     """
 
     summary: Required[str]
@@ -46,7 +46,7 @@ class FlattenModel(TypedDict, total=False):
     :ivar name: Required.
     :vartype name: str
     :ivar properties: Required.
-    :vartype properties: ~specs.azure.clientgenerator.core.flattenproperty.models.ChildModel
+    :vartype properties: "ChildModel"
     """
 
     name: Required[str]
@@ -61,12 +61,12 @@ class FlattenUnknownModel(TypedDict, total=False):
     :ivar name: Required.
     :vartype name: str
     :ivar properties:
-    :vartype properties: any
+    :vartype properties: Any
     """
 
     name: Required[str]
     """Required."""
-    properties: Optional[Any]
+    properties: Any
 
 
 class NestedFlattenModel(TypedDict, total=False):
@@ -75,7 +75,7 @@ class NestedFlattenModel(TypedDict, total=False):
     :ivar name: Required.
     :vartype name: str
     :ivar properties: Required.
-    :vartype properties: ~specs.azure.clientgenerator.core.flattenproperty.models.ChildFlattenModel
+    :vartype properties: "ChildFlattenModel"
     """
 
     name: Required[str]
@@ -90,26 +90,25 @@ class Solution(TypedDict, total=False):
     :ivar name: Required.
     :vartype name: str
     :ivar properties:
-    :vartype properties:
-     ~specs.azure.clientgenerator.core.flattenproperty.models.SolutionProperties
+    :vartype properties: "SolutionProperties"
     """
 
     name: Required[str]
     """Required."""
-    properties: Optional["SolutionProperties"]
+    properties: "SolutionProperties"
 
 
 class SolutionProperties(TypedDict, total=False):
     """This is the model with all read-only properties to be flattened.
 
-    :ivar solution_id:
-    :vartype solution_id: str
+    :ivar solutionId:
+    :vartype solutionId: str
     :ivar title:
     :vartype title: str
     :ivar content:
     :vartype content: str
     """
 
-    solutionId: Optional[str]
-    title: Optional[str]
-    content: Optional[str]
+    solutionId: str
+    title: str
+    content: str
