@@ -6,19 +6,7 @@
 # Changes may cause incorrect behavior and will be lost if the code is regenerated.
 # --------------------------------------------------------------------------
 
-from typing import Optional
 from typing_extensions import Required, TypedDict
-
-
-class ListWidgetsResponse(TypedDict, total=False):
-    """ListWidgetsResponse.
-
-    :ivar widgets: Required.
-    :vartype widgets: list[~specs.azure.versioning.previewversion.models.Widget]
-    """
-
-    widgets: Required[list["Widget"]]
-    """Required."""
 
 
 class UpdateWidgetColorRequest(TypedDict, total=False):
@@ -30,22 +18,3 @@ class UpdateWidgetColorRequest(TypedDict, total=False):
 
     color: Required[str]
     """New color for the widget. Required."""
-
-
-class Widget(TypedDict, total=False):
-    """A simple model for testing.
-
-    :ivar id: Widget identifier. Required.
-    :vartype id: str
-    :ivar name: Widget name. Required.
-    :vartype name: str
-    :ivar color: Widget color, only available in preview version.
-    :vartype color: str
-    """
-
-    id: Required[str]
-    """Widget identifier. Required."""
-    name: Required[str]
-    """Widget name. Required."""
-    color: Optional[str]
-    """Widget color, only available in preview version."""

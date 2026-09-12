@@ -6,7 +6,6 @@
 # Changes may cause incorrect behavior and will be lost if the code is regenerated.
 # --------------------------------------------------------------------------
 
-from typing import Optional
 from typing_extensions import Required, TypedDict
 
 
@@ -16,9 +15,9 @@ class InnerModel(TypedDict, total=False):
     :ivar property: Required string property. Required.
     :vartype property: str
     :ivar children:
-    :vartype children: list[~typetest.array.models.InnerModel]
+    :vartype children: list["InnerModel"]
     """
 
     property: Required[str]
     """Required string property. Required."""
-    children: Optional[list["InnerModel"]]
+    children: list["InnerModel"]

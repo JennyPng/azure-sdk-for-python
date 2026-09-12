@@ -1,7 +1,6 @@
 # coding=utf-8
 
-import datetime
-from typing import Literal, Optional
+from typing import Literal
 from typing_extensions import Required, TypedDict
 
 
@@ -9,10 +8,10 @@ class BooleanLiteralProperty(TypedDict, total=False):
     """Model with boolean literal property.
 
     :ivar property: Property. Default value is True.
-    :vartype property: bool
+    :vartype property: Literal[True]
     """
 
-    property: Optional[Literal[True]]
+    property: Literal[True]
     """Property. Default value is True."""
 
 
@@ -21,10 +20,10 @@ class BytesProperty(TypedDict, total=False):
     are looking for.
 
     :ivar property: Property.
-    :vartype property: bytes
+    :vartype property: str
     """
 
-    property: Optional[bytes]
+    property: str
     """Property."""
 
 
@@ -32,10 +31,10 @@ class CollectionsByteProperty(TypedDict, total=False):
     """Model with collection bytes properties.
 
     :ivar property: Property.
-    :vartype property: list[bytes]
+    :vartype property: list[str]
     """
 
-    property: Optional[list[bytes]]
+    property: list[str]
     """Property."""
 
 
@@ -43,10 +42,10 @@ class CollectionsModelProperty(TypedDict, total=False):
     """Model with collection models properties.
 
     :ivar property: Property.
-    :vartype property: list[~typetest.property.optional.models.StringProperty]
+    :vartype property: list["StringProperty"]
     """
 
-    property: Optional[list["StringProperty"]]
+    property: list["StringProperty"]
     """Property."""
 
 
@@ -54,10 +53,10 @@ class DatetimeProperty(TypedDict, total=False):
     """Model with a datetime property.
 
     :ivar property: Property.
-    :vartype property: ~datetime.datetime
+    :vartype property: str
     """
 
-    property: Optional[datetime.datetime]
+    property: str
     """Property."""
 
 
@@ -65,10 +64,10 @@ class DurationProperty(TypedDict, total=False):
     """Model with a duration property.
 
     :ivar property: Property.
-    :vartype property: ~datetime.timedelta
+    :vartype property: str
     """
 
-    property: Optional[datetime.timedelta]
+    property: str
     """Property."""
 
 
@@ -79,7 +78,7 @@ class FloatLiteralProperty(TypedDict, total=False):
     :vartype property: float
     """
 
-    property: Optional[float]
+    property: float
     """Property. Default value is 1.25."""
 
 
@@ -87,10 +86,10 @@ class IntLiteralProperty(TypedDict, total=False):
     """Model with int literal property.
 
     :ivar property: Property. Default value is 1.
-    :vartype property: int
+    :vartype property: Literal[1]
     """
 
-    property: Optional[Literal[1]]
+    property: Literal[1]
     """Property. Default value is 1."""
 
 
@@ -98,10 +97,10 @@ class PlainDateProperty(TypedDict, total=False):
     """Model with a plainDate property.
 
     :ivar property: Property.
-    :vartype property: ~datetime.date
+    :vartype property: str
     """
 
-    property: Optional[datetime.date]
+    property: str
     """Property."""
 
 
@@ -109,23 +108,23 @@ class PlainTimeProperty(TypedDict, total=False):
     """Model with a plainTime property.
 
     :ivar property: Property.
-    :vartype property: ~datetime.time
+    :vartype property: str
     """
 
-    property: Optional[datetime.time]
+    property: str
     """Property."""
 
 
 class RequiredAndOptionalProperty(TypedDict, total=False):
     """Model with required and optional properties.
 
-    :ivar optional_property: optional string property.
-    :vartype optional_property: str
-    :ivar required_property: required int property. Required.
-    :vartype required_property: int
+    :ivar optionalProperty: optional string property.
+    :vartype optionalProperty: str
+    :ivar requiredProperty: required int property. Required.
+    :vartype requiredProperty: int
     """
 
-    optionalProperty: Optional[str]
+    optionalProperty: str
     """optional string property."""
     requiredProperty: Required[int]
     """required int property. Required."""
@@ -135,10 +134,10 @@ class StringLiteralProperty(TypedDict, total=False):
     """Model with string literal property.
 
     :ivar property: Property. Default value is "hello".
-    :vartype property: str
+    :vartype property: Literal["hello"]
     """
 
-    property: Optional[Literal["hello"]]
+    property: Literal["hello"]
     """Property. Default value is \"hello\"."""
 
 
@@ -150,7 +149,7 @@ class StringProperty(TypedDict, total=False):
     :vartype property: str
     """
 
-    property: Optional[str]
+    property: str
     """Property."""
 
 
@@ -158,10 +157,10 @@ class UnionFloatLiteralProperty(TypedDict, total=False):
     """Model with union of float literal property.
 
     :ivar property: Property. Is one of the following types: float
-    :vartype property: float or float
+    :vartype property: float
     """
 
-    property: Optional[float]
+    property: float
     """Property. Is one of the following types: float"""
 
 
@@ -169,10 +168,10 @@ class UnionIntLiteralProperty(TypedDict, total=False):
     """Model with union of int literal property.
 
     :ivar property: Property. Is either a Literal[1] type or a Literal[2] type.
-    :vartype property: int or int
+    :vartype property: Literal[1, 2]
     """
 
-    property: Optional[Literal[1, 2]]
+    property: Literal[1, 2]
     """Property. Is either a Literal[1] type or a Literal[2] type."""
 
 
@@ -180,8 +179,8 @@ class UnionStringLiteralProperty(TypedDict, total=False):
     """Model with union of string literal property.
 
     :ivar property: Property. Is either a Literal["hello"] type or a Literal["world"] type.
-    :vartype property: str or str
+    :vartype property: Literal["hello", "world"]
     """
 
-    property: Optional[Literal["hello", "world"]]
+    property: Literal["hello", "world"]
     """Property. Is either a Literal[\"hello\"] type or a Literal[\"world\"] type."""
