@@ -7,67 +7,11 @@
 # Changes may cause incorrect behavior and will be lost if the code is regenerated.
 # --------------------------------------------------------------------------
 
-import datetime
-from typing import Any, Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union
 from typing_extensions import Required, TypedDict
 
 if TYPE_CHECKING:
     from .models import CreatedByType, ResourceProvisioningState
-
-
-class ErrorAdditionalInfo(TypedDict, total=False):
-    """The resource management error additional info.
-
-    :ivar type: The additional info type.
-    :vartype type: str
-    :ivar info: The additional info.
-    :vartype info: any
-    """
-
-    type: Optional[str]
-    """The additional info type."""
-    info: Optional[Any]
-    """The additional info."""
-
-
-class ErrorDetail(TypedDict, total=False):
-    """The error detail.
-
-    :ivar code: The error code.
-    :vartype code: str
-    :ivar message: The error message.
-    :vartype message: str
-    :ivar target: The error target.
-    :vartype target: str
-    :ivar details: The error details.
-    :vartype details:
-     list[~azure.resourcemanager.multiservicesharedmodels.combined.models.ErrorDetail]
-    :ivar additional_info: The error additional info.
-    :vartype additional_info:
-     list[~azure.resourcemanager.multiservicesharedmodels.combined.models.ErrorAdditionalInfo]
-    """
-
-    code: Optional[str]
-    """The error code."""
-    message: Optional[str]
-    """The error message."""
-    target: Optional[str]
-    """The error target."""
-    details: Optional[list["ErrorDetail"]]
-    """The error details."""
-    additionalInfo: Optional[list["ErrorAdditionalInfo"]]
-    """The error additional info."""
-
-
-class ErrorResponse(TypedDict, total=False):
-    """Error response.
-
-    :ivar error: The error object.
-    :vartype error: ~azure.resourcemanager.multiservicesharedmodels.combined.models.ErrorDetail
-    """
-
-    error: Optional["ErrorDetail"]
-    """The error object."""
 
 
 class Resource(TypedDict, total=False):
@@ -81,40 +25,39 @@ class Resource(TypedDict, total=False):
     :ivar type: The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or
      "Microsoft.Storage/storageAccounts".
     :vartype type: str
-    :ivar system_data: Azure Resource Manager metadata containing createdBy and modifiedBy
+    :ivar systemData: Azure Resource Manager metadata containing createdBy and modifiedBy
      information.
-    :vartype system_data:
-     ~azure.resourcemanager.multiservicesharedmodels.combined.models.SystemData
+    :vartype systemData: "SystemData"
     """
 
-    id: Optional[str]
+    id: str
     """Fully qualified resource ID for the resource. Ex -
      /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}."""
-    name: Optional[str]
+    name: str
     """The name of the resource."""
-    type: Optional[str]
+    type: str
     """The type of the resource. E.g. \"Microsoft.Compute/virtualMachines\" or
      \"Microsoft.Storage/storageAccounts\"."""
-    systemData: Optional["SystemData"]
+    systemData: "SystemData"
     """Azure Resource Manager metadata containing createdBy and modifiedBy information."""
 
 
 class SharedMetadata(TypedDict, total=False):
     """Common metadata shared across multiple services.
 
-    :ivar created_at: Creation timestamp of the resource.
-    :vartype created_at: ~datetime.datetime
-    :ivar created_by: Creator of the resource.
-    :vartype created_by: str
+    :ivar createdAt: Creation timestamp of the resource.
+    :vartype createdAt: str
+    :ivar createdBy: Creator of the resource.
+    :vartype createdBy: str
     :ivar tags: Tags associated with the resource.
     :vartype tags: dict[str, str]
     """
 
-    createdAt: Optional[datetime.datetime]
+    createdAt: str
     """Creation timestamp of the resource."""
-    createdBy: Optional[str]
+    createdBy: str
     """Creator of the resource."""
-    tags: Optional[dict[str, str]]
+    tags: dict[str, str]
     """Tags associated with the resource."""
 
 
@@ -129,17 +72,16 @@ class TrackedResource(Resource):
     :ivar type: The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or
      "Microsoft.Storage/storageAccounts".
     :vartype type: str
-    :ivar system_data: Azure Resource Manager metadata containing createdBy and modifiedBy
+    :ivar systemData: Azure Resource Manager metadata containing createdBy and modifiedBy
      information.
-    :vartype system_data:
-     ~azure.resourcemanager.multiservicesharedmodels.combined.models.SystemData
+    :vartype systemData: "SystemData"
     :ivar tags: Resource tags.
     :vartype tags: dict[str, str]
     :ivar location: The geo-location where the resource lives. Required.
     :vartype location: str
     """
 
-    tags: Optional[dict[str, str]]
+    tags: dict[str, str]
     """Resource tags."""
     location: Required[str]
     """The geo-location where the resource lives. Required."""
@@ -156,74 +98,68 @@ class StorageAccount(TrackedResource):
     :ivar type: The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or
      "Microsoft.Storage/storageAccounts".
     :vartype type: str
-    :ivar system_data: Azure Resource Manager metadata containing createdBy and modifiedBy
+    :ivar systemData: Azure Resource Manager metadata containing createdBy and modifiedBy
      information.
-    :vartype system_data:
-     ~azure.resourcemanager.multiservicesharedmodels.combined.models.SystemData
+    :vartype systemData: "SystemData"
     :ivar tags: Resource tags.
     :vartype tags: dict[str, str]
     :ivar location: The geo-location where the resource lives. Required.
     :vartype location: str
     :ivar properties: The resource-specific properties for this resource.
-    :vartype properties:
-     ~azure.resourcemanager.multiservicesharedmodels.combined.models.StorageAccountProperties
+    :vartype properties: "StorageAccountProperties"
     """
 
-    properties: Optional["StorageAccountProperties"]
+    properties: "StorageAccountProperties"
     """The resource-specific properties for this resource."""
 
 
 class StorageAccountProperties(TypedDict, total=False):
     """Storage account properties.
 
-    :ivar provisioning_state: Known values are: "Succeeded", "Failed", and "Canceled".
-    :vartype provisioning_state: str or
-     ~azure.resourcemanager.multiservicesharedmodels.combined.models.ResourceProvisioningState
+    :ivar provisioningState: Known values are: "Succeeded", "Failed", and "Canceled".
+    :vartype provisioningState: Union[str, "ResourceProvisioningState"]
     :ivar metadata: Shared metadata for the storage account.
-    :vartype metadata:
-     ~azure.resourcemanager.multiservicesharedmodels.combined.models.SharedMetadata
+    :vartype metadata: "SharedMetadata"
     """
 
-    provisioningState: Optional[Union[str, "ResourceProvisioningState"]]
+    provisioningState: Union[str, "ResourceProvisioningState"]
     """Known values are: \"Succeeded\", \"Failed\", and \"Canceled\"."""
-    metadata: Optional["SharedMetadata"]
+    metadata: "SharedMetadata"
     """Shared metadata for the storage account."""
 
 
 class SystemData(TypedDict, total=False):
     """Metadata pertaining to creation and last modification of the resource.
 
-    :ivar created_by: The identity that created the resource.
-    :vartype created_by: str
-    :ivar created_by_type: The type of identity that created the resource. Known values are:
-     "User", "Application", "ManagedIdentity", and "Key".
-    :vartype created_by_type: str or
-     ~azure.resourcemanager.multiservicesharedmodels.combined.models.CreatedByType
-    :ivar created_at: The timestamp of resource creation (UTC).
-    :vartype created_at: ~datetime.datetime
-    :ivar last_modified_by: The identity that last modified the resource.
-    :vartype last_modified_by: str
-    :ivar last_modified_by_type: The type of identity that last modified the resource. Known values
+    :ivar createdBy: The identity that created the resource.
+    :vartype createdBy: str
+    :ivar createdByType: The type of identity that created the resource. Known values are: "User",
+     "Application", "ManagedIdentity", and "Key".
+    :vartype createdByType: Union[str, "CreatedByType"]
+    :ivar createdAt: The timestamp of resource creation (UTC).
+    :vartype createdAt: str
+    :ivar lastModifiedBy: The identity that last modified the resource.
+    :vartype lastModifiedBy: str
+    :ivar lastModifiedByType: The type of identity that last modified the resource. Known values
      are: "User", "Application", "ManagedIdentity", and "Key".
-    :vartype last_modified_by_type: str or
-     ~azure.resourcemanager.multiservicesharedmodels.combined.models.CreatedByType
-    :ivar last_modified_at: The timestamp of resource last modification (UTC).
-    :vartype last_modified_at: ~datetime.datetime
+    :vartype lastModifiedByType: Union[str, "CreatedByType"]
+    :ivar lastModifiedAt: The timestamp of resource last modification (UTC).
+    :vartype lastModifiedAt: str
     """
 
-    createdBy: Optional[str]
+    createdBy: str
     """The identity that created the resource."""
-    createdByType: Optional[Union[str, "CreatedByType"]]
+    createdByType: Union[str, "CreatedByType"]
     """The type of identity that created the resource. Known values are: \"User\", \"Application\",
      \"ManagedIdentity\", and \"Key\"."""
-    createdAt: Optional[datetime.datetime]
+    createdAt: str
     """The timestamp of resource creation (UTC)."""
-    lastModifiedBy: Optional[str]
+    lastModifiedBy: str
     """The identity that last modified the resource."""
-    lastModifiedByType: Optional[Union[str, "CreatedByType"]]
+    lastModifiedByType: Union[str, "CreatedByType"]
     """The type of identity that last modified the resource. Known values are: \"User\",
      \"Application\", \"ManagedIdentity\", and \"Key\"."""
-    lastModifiedAt: Optional[datetime.datetime]
+    lastModifiedAt: str
     """The timestamp of resource last modification (UTC)."""
 
 
@@ -238,35 +174,31 @@ class VirtualMachine(TrackedResource):
     :ivar type: The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or
      "Microsoft.Storage/storageAccounts".
     :vartype type: str
-    :ivar system_data: Azure Resource Manager metadata containing createdBy and modifiedBy
+    :ivar systemData: Azure Resource Manager metadata containing createdBy and modifiedBy
      information.
-    :vartype system_data:
-     ~azure.resourcemanager.multiservicesharedmodels.combined.models.SystemData
+    :vartype systemData: "SystemData"
     :ivar tags: Resource tags.
     :vartype tags: dict[str, str]
     :ivar location: The geo-location where the resource lives. Required.
     :vartype location: str
     :ivar properties: The resource-specific properties for this resource.
-    :vartype properties:
-     ~azure.resourcemanager.multiservicesharedmodels.combined.models.VirtualMachineProperties
+    :vartype properties: "VirtualMachineProperties"
     """
 
-    properties: Optional["VirtualMachineProperties"]
+    properties: "VirtualMachineProperties"
     """The resource-specific properties for this resource."""
 
 
 class VirtualMachineProperties(TypedDict, total=False):
     """VirtualMachineProperties.
 
-    :ivar provisioning_state: Known values are: "Succeeded", "Failed", and "Canceled".
-    :vartype provisioning_state: str or
-     ~azure.resourcemanager.multiservicesharedmodels.combined.models.ResourceProvisioningState
+    :ivar provisioningState: Known values are: "Succeeded", "Failed", and "Canceled".
+    :vartype provisioningState: Union[str, "ResourceProvisioningState"]
     :ivar metadata: Shared metadata for the virtual machine.
-    :vartype metadata:
-     ~azure.resourcemanager.multiservicesharedmodels.combined.models.SharedMetadata
+    :vartype metadata: "SharedMetadata"
     """
 
-    provisioningState: Optional[Union[str, "ResourceProvisioningState"]]
+    provisioningState: Union[str, "ResourceProvisioningState"]
     """Known values are: \"Succeeded\", \"Failed\", and \"Canceled\"."""
-    metadata: Optional["SharedMetadata"]
+    metadata: "SharedMetadata"
     """Shared metadata for the virtual machine."""
