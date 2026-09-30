@@ -1,6 +1,5 @@
 # coding=utf-8
 
-from typing import Optional
 from typing_extensions import Required, TypedDict
 
 from ._utils.utils import FileType
@@ -23,7 +22,7 @@ class BinaryArrayPartsRequest(TypedDict, total=False):
     :ivar id: Required.
     :vartype id: str
     :ivar pictures: Required.
-    :vartype pictures: list[~payload.multipart._utils.utils.FileType]
+    :vartype pictures: list[FileType]
     """
 
     id: Required[str]
@@ -38,13 +37,13 @@ class ComplexHttpPartsModelRequest(TypedDict, total=False):
     :ivar id: Required.
     :vartype id: str
     :ivar address: Required.
-    :vartype address: ~payload.multipart.models.Address
-    :ivar profile_image: Required.
-    :vartype profile_image: ~payload.multipart._utils.utils.FileType
-    :ivar previous_addresses: Required.
-    :vartype previous_addresses: list[~payload.multipart.models.Address]
+    :vartype address: "Address"
+    :ivar profileImage: Required.
+    :vartype profileImage: FileType
+    :ivar previousAddresses: Required.
+    :vartype previousAddresses: list["Address"]
     :ivar pictures: Required.
-    :vartype pictures: list[~payload.multipart._utils.utils.FileType]
+    :vartype pictures: list[FileType]
     """
 
     id: Required[str]
@@ -65,11 +64,11 @@ class ComplexPartsRequest(TypedDict, total=False):
     :ivar id: Required.
     :vartype id: str
     :ivar address: Required.
-    :vartype address: ~payload.multipart.models.Address
-    :ivar profile_image: Required.
-    :vartype profile_image: ~payload.multipart._utils.utils.FileType
+    :vartype address: "Address"
+    :ivar profileImage: Required.
+    :vartype profileImage: FileType
     :ivar pictures: Required.
-    :vartype pictures: list[~payload.multipart._utils.utils.FileType]
+    :vartype pictures: list[FileType]
     """
 
     id: Required[str]
@@ -85,8 +84,8 @@ class ComplexPartsRequest(TypedDict, total=False):
 class FileWithHttpPartOptionalContentTypeRequest(TypedDict, total=False):  # pylint: disable=name-too-long
     """FileWithHttpPartOptionalContentTypeRequest.
 
-    :ivar profile_image: Required.
-    :vartype profile_image: ~payload.multipart._utils.utils.FileType
+    :ivar profileImage: Required.
+    :vartype profileImage: FileType
     """
 
     profileImage: Required[FileType]
@@ -96,8 +95,8 @@ class FileWithHttpPartOptionalContentTypeRequest(TypedDict, total=False):  # pyl
 class FileWithHttpPartRequiredContentTypeRequest(TypedDict, total=False):  # pylint: disable=name-too-long
     """FileWithHttpPartRequiredContentTypeRequest.
 
-    :ivar profile_image: Required.
-    :vartype profile_image: ~payload.multipart._utils.utils.FileType
+    :ivar profileImage: Required.
+    :vartype profileImage: FileType
     """
 
     profileImage: Required[FileType]
@@ -107,8 +106,8 @@ class FileWithHttpPartRequiredContentTypeRequest(TypedDict, total=False):  # pyl
 class FileWithHttpPartSpecificContentTypeRequest(TypedDict, total=False):  # pylint: disable=name-too-long
     """FileWithHttpPartSpecificContentTypeRequest.
 
-    :ivar profile_image: Required.
-    :vartype profile_image: ~payload.multipart._utils.utils.FileType
+    :ivar profileImage: Required.
+    :vartype profileImage: FileType
     """
 
     profileImage: Required[FileType]
@@ -119,9 +118,9 @@ class JsonPartRequest(TypedDict, total=False):
     """JsonPartRequest.
 
     :ivar address: Required.
-    :vartype address: ~payload.multipart.models.Address
-    :ivar profile_image: Required.
-    :vartype profile_image: ~payload.multipart._utils.utils.FileType
+    :vartype address: "Address"
+    :ivar profileImage: Required.
+    :vartype profileImage: FileType
     """
 
     address: Required["Address"]
@@ -133,15 +132,15 @@ class JsonPartRequest(TypedDict, total=False):
 class MultiBinaryPartsRequest(TypedDict, total=False):
     """MultiBinaryPartsRequest.
 
-    :ivar profile_image: Required.
-    :vartype profile_image: ~payload.multipart._utils.utils.FileType
+    :ivar profileImage: Required.
+    :vartype profileImage: FileType
     :ivar picture:
-    :vartype picture: ~payload.multipart._utils.utils.FileType
+    :vartype picture: FileType
     """
 
     profileImage: Required[FileType]
     """Required."""
-    picture: Optional[FileType]
+    picture: FileType
 
 
 class MultiPartOptionalRequest(TypedDict, total=False):
@@ -149,12 +148,12 @@ class MultiPartOptionalRequest(TypedDict, total=False):
 
     :ivar id:
     :vartype id: str
-    :ivar profile_image:
-    :vartype profile_image: ~payload.multipart._utils.utils.FileType
+    :ivar profileImage:
+    :vartype profileImage: FileType
     """
 
-    id: Optional[str]
-    profileImage: Optional[FileType]
+    id: str
+    profileImage: FileType
 
 
 class MultiPartRequest(TypedDict, total=False):
@@ -162,8 +161,8 @@ class MultiPartRequest(TypedDict, total=False):
 
     :ivar id: Required.
     :vartype id: str
-    :ivar profile_image: Required.
-    :vartype profile_image: ~payload.multipart._utils.utils.FileType
+    :ivar profileImage: Required.
+    :vartype profileImage: FileType
     """
 
     id: Required[str]
@@ -175,10 +174,10 @@ class MultiPartRequest(TypedDict, total=False):
 class MultiPartRequestWithWireName(TypedDict, total=False):
     """MultiPartRequestWithWireName.
 
-    :ivar identifier: Required.
-    :vartype identifier: str
-    :ivar image: Required.
-    :vartype image: ~payload.multipart._utils.utils.FileType
+    :ivar id: Required.
+    :vartype id: str
+    :ivar profileImage: Required.
+    :vartype profileImage: FileType
     """
 
     id: Required[str]
